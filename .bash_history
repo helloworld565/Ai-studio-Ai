@@ -75,3 +75,6 @@ p{
 </section>
 </body>
 </html>
+git add .
+git commit -m "AI Studio UI"
+git push
