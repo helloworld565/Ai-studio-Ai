@@ -1,53 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AI Studio</title>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
-background:#06142b;
 font-family:Arial,sans-serif;
+background:#020817;
 color:#fff;
+}
+.nav{
+position:fixed;top:0;width:100%;
+padding:16px 20px;
+display:flex;justify-content:space-between;
+background:rgba(2,8,23,.7);
+backdrop-filter:blur(14px);
+}
+.logo{font-size:22px;font-weight:bold;color:#8b5cf6}
+.login{
+padding:8px 16px;border-radius:20px;
+border:1px solid #8b5cf6;color:#fff;text-decoration:none;
 }
 .hero{
 height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-text-align:center;
-padding:20px;
-background:linear-gradient(180deg,#071a36,#030b18);
+display:flex;align-items:center;justify-content:center;
+text-align:center;padding:24px;
+background:
+radial-gradient(circle at top,#6d28d9 0,#020817 55%);
+}
+.badge{
+display:inline-block;
+padding:6px 14px;
+border-radius:20px;
+background:#1e293b;
+color:#a78bfa;
+margin-bottom:16px;
 }
 h1{
-font-size:42px;
-color:#33b5ff;
-margin-bottom:14px;
+font-size:48px;
+line-height:1.1;
+margin-bottom:18px;
 }
+h1 span{color:#8b5cf6}
 p{
 color:#cbd5e1;
-margin-bottom:28px;
 line-height:1.6;
+margin-bottom:30px;
 }
 .btn{
 display:inline-block;
-padding:15px 34px;
-background:#22c55e;
+padding:16px 34px;
 border-radius:40px;
+background:#7c3aed;
 color:#fff;
 text-decoration:none;
 font-weight:bold;
+box-shadow:0 0 30px #7c3aed55;
 }
+.stats{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:14px;
+padding:24px;
+}
+.card{
+background:#0f172a;
+border:1px solid #1e293b;
+border-radius:18px;
+padding:18px;
+text-align:center;
+}
+.card h2{color:#8b5cf6}
 </style>
 </head>
+
 <body>
+
+<nav class="nav">
+<div class="logo">AI STUDIO</div>
+<a class="login" href="#">Login</a>
+</nav>
+
 <section class="hero">
 <div>
-<h1>AI STUDIO</h1>
-<p>सिनेमैटिक AI वीडियो बनाने का अगली पीढ़ी का वेब स्टूडियो</p>
-<a class="btn" href="#">Open Studio</a>
+<div class="badge">AI FILMMAKING STUDIO</div>
+<h1>From Script to <span>Screen</span></h1>
+<p>सिनेमैटिक AI वीडियो, कैरेक्टर लॉक और प्रोफेशनल स्टोरीबोर्ड — सब एक जगह।</p>
+<a class="btn" href="#">Launch Studio</a>
 </div>
 </section>
+
+<section class="stats">
+<div class="card"><h2>14+</h2><small>AI Models</small></div>
+<div class="card"><h2>8</h2><small>Styles</small></div>
+<div class="card"><h2>4K</h2><small>Export</small></div>
+<div class="card"><h2>∞</h2><small>Projects</small></div>
+</section>
+
 </body>
 </html>

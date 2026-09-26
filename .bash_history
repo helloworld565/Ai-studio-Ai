@@ -85,3 +85,8 @@ cd /storage/emulated/0/Acode/files/public
 git add .
 git commit -m "AI Studio UI"
 git push origin main
+git add .
+git commit -m "Hero UI"
+git push origin main
+git push origin main
+git push origin main
