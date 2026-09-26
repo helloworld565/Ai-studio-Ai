@@ -111,6 +111,29 @@ function clickSound(){
 }
 document.querySelectorAll("button,.btn").forEach(e=>e.onclick=clickSound);
 </script>
+<section id="video">
+  <h2>3D Cartoon Video</h2>
 
+  <textarea id="prompt"
+    placeholder="यहाँ अपना सीन लिखें..."></textarea>
+
+  <select id="style">
+    <option>Pixar 3D</option>
+    <option>Disney 3D</option>
+    <option>Anime 3D</option>
+  </select>
+
+  <button onclick="generate3D()">
+    Generate Video
+  </button>
+
+  <video id="player" controls></video>
+</section>
+
+<script>
+async function generate3D(){
+  alert("API connect hone ke baad yahi video banega");
+}
+</script>
 </body>
 </html>

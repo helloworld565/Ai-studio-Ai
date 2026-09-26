@@ -93,3 +93,6 @@ git push origin main
 git add .
 git commit -m "Advanced UI"
 git push origin main
+git add .
+git commit -m "Full AI Studio v2"
+git push origin main
