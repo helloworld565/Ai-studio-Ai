@@ -78,3 +78,10 @@ p{
 git add .
 git commit -m "AI Studio UI"
 git push
+git add .
+git commit -m "AI Studio UI"
+git push
+cd /storage/emulated/0/Acode/files/public
+git add .
+git commit -m "AI Studio UI"
+git push origin main
