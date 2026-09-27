@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Video</title>
+<style>
+body{background:#0b1020;color:#fff;font-family:Arial;padding:20px}
+textarea,input,button{width:100%;margin:10px 0;padding:12px;border-radius:10px}
+button{background:#7c3aed;color:#fff;border:0}
+#out{margin-top:15px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h2>Wan 2.1 AI Video</h2>
+<input id="img" placeholder="Image URL (optional)">
+<textarea id="prompt" rows="4" placeholder="Describe your video..."></textarea>
+<button onclick="gen()">Generate</button>
+<div id="out"></div>
+
+<script>
+async function gen(){
+ const key="YOUR_BACKEND";
+ const p=document.getElementById("prompt").value;
+ document.getElementById("out").innerText="Generating...";
+ const r=await fetch("/api/video",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({prompt:p,image:document.getElementById("img").value})
+ });
+ const d=await r.json();
+ document.getElementById("out").innerText=JSON.stringify(d,null,2);
+}
+</script>
+</body>
+</html>
