@@ -168,12 +168,19 @@ async function gen(){
     });
 
     const txt = await r.text();
+
+if (!txt.trim().startsWith("{")) {
+  alert(txt);      // असली server error दिखेगा
+  return;
+}
+
 const d = JSON.parse(txt);
 
 if (!d.name) {
   alert(d.error || "API Error");
   return;
 }
+
 
 
     lastJob = d.name;
