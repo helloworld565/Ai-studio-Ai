@@ -1,107 +1,183 @@
-
-
-    
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wan 2.1 AI Video</title>
+<title>Wan 2.1 AI Studio</title>
 
 <style>
 body{
-  background:#0b1020;
-  color:#fff;
+  margin:0;
+  background:#081327;
+  color:white;
   font-family:Arial;
-  padding:20px;
 }
-textarea,input,button{
+.wrap{padding:18px;}
+h1{font-size:28px}
+.card{
+  background:#101c38;
+  border-radius:16px;
+  padding:14px;
+  margin-top:14px;
+}
+input,textarea,select{
   width:100%;
-  margin:10px 0;
   padding:12px;
-  border-radius:12px;
-  border:0;
+  border-radius:10px;
+  border:none;
+  margin-top:8px;
+  background:#1a2850;
+  color:#fff;
+}
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
 }
 button{
-  background:#7c3aed;
-  color:#fff;
-  font-size:16px;
+ width:100%;
+ padding:14px;
+ border:none;
+ border-radius:12px;
+ color:#fff;
+ font-size:16px;
+ margin-top:10px;
+ background:linear-gradient(90deg,#5b4dff,#9c37ff);
 }
-#status,#out{
-  margin-top:15px;
-  white-space:pre-wrap;
+.blue{background:#1769ff}
+.green{background:#00b84d}
+.orange{background:#ff9800}
+.red{background:#d32f2f}
+#bar{
+ height:12px;
+ background:#23355f;
+ border-radius:30px;
+ overflow:hidden;
 }
-a{color:#7dd3fc}
+#fill{
+ height:100%;
+ width:0%;
+ background:linear-gradient(90deg,#29b6f6,#00e676);
+}
+.small{font-size:13px;color:#b8c6ff}
 </style>
 </head>
 
 <body>
 
-<h2>Wan 2.1 AI Video</h2>
+<div class="wrap">
 
+<h1>🎬 Wan 2.1 AI Studio</h1>
+
+<div class="card">
+<b>Prompt</b>
+<textarea id="prompt" rows="4"
+placeholder="Describe your cinematic video..."></textarea>
+
+<b>Reference Image</b>
 <input id="img" placeholder="Image URL (optional)">
+</div>
 
-<textarea id="prompt" rows="5"
-placeholder="Describe your video..."></textarea>
+<div class="card">
+<b>Advanced Settings</b>
 
-<button onclick="gen(false)">🎬 Generate</button>
+<div class="grid">
 
-<button id="extendBtn" onclick="gen(true)" disabled>
-➕ Extend Video
-</button>
+<div>
+Resolution
+<select id="res">
+<option>4K</option>
+<option>1080P</option>
+</select>
+</div>
 
-<button id="downloadBtn" onclick="downloadVideo()" disabled>
-⬇ Download MP4
-</button>
+<div>
+FPS
+<select id="fps">
+<option>24</option>
+<option>30</option>
+</select>
+</div>
 
-<button onclick="newVideo()">
-🆕 New Video
-</button>
+<div>
+Duration
+<select id="dur">
+<option>8</option>
+<option>12</option>
+<option>16</option>
+</select>
+</div>
 
-<button id="deleteBtn" onclick="deleteVideo()" disabled>
-🗑 Delete
-</button>
+<div>
+Aspect
+<select id="ratio">
+<option>16:9</option>
+<option>9:16</option>
+</select>
+</div>
 
-<div id="status"></div>
-<div id="out"></div>
+</div>
+</div>
+
+<div class="card">
+<b>🎤 Voice Clone</b>
+<input type="file" id="voice" accept="audio/*">
+<div class="small">WAV / MP3 (optional)</div>
+</div>
+
+<button onclick="gen(false)">🎬 Generate Video</button>
+<button id="extendBtn" disabled onclick="gen(true)">➕ Extend Video</button>
+
+<div class="grid">
+<button class="green" id="downloadBtn" disabled onclick="downloadVideo()">⬇ Download</button>
+<button class="orange" onclick="newVideo()">🆕 New</button>
+</div>
+
+<button class="red" id="deleteBtn" disabled onclick="deleteVideo()">🗑 Delete</button>
+
+<div class="card">
+
+<div id="stage">Waiting...</div>
+
+<div style="margin-top:8px" id="percent">0%</div>
+
+<div id="bar">
+<div id="fill"></div>
+</div>
+
+<div class="small" id="eta">ETA --</div>
+
+</div>
+
+</div>
 
 <script>
 let lastVideo="";
 let lastJob="";
 
+function ui(p,s,e){
+document.getElementById("stage").innerText=s;
+document.getElementById("percent").innerText=p+"%";
+document.getElementById("eta").innerText="ETA : "+e+" sec";
+document.getElementById("fill").style.width=p+"%";
+}
+
 async function gen(extend){
 
-const out=document.getElementById("out");
-const status=document.getElementById("status");
-
-const stage=(t,p,e)=>{
-status.innerHTML=`⏳ ${p}%
-
-${t}
-
-ETA: ${e}s`;
-};
-
-stage("Prompt Received",0,180);
-
-setTimeout(()=>stage("Analyzing Prompt",12,165),3000);
-setTimeout(()=>stage("Creating Storyboard",25,145),8000);
-setTimeout(()=>stage("Rendering Frames",55,90),20000);
-setTimeout(()=>stage("Animating Motion",72,45),90000);
-setTimeout(()=>stage("Final Touch",88,20),140000);
-setTimeout(()=>stage("Encoding MP4",96,8),165000);
+ui(0,"Submitting Prompt",180);
 
 const r=await fetch("/api/generate",{
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-prompt:document.getElementById("prompt").value,
-image:document.getElementById("img").value,
-extend:extend,
-lastVideo:lastVideo
+prompt:prompt.value,
+image:img.value,
+extend,
+lastVideo,
+resolution:res.value,
+fps:fps.value,
+duration:dur.value,
+aspect:ratio.value
 })
 });
 
@@ -110,9 +186,9 @@ lastJob=d.name;
 
 const timer=setInterval(async()=>{
 
-const s=await (await fetch("/api/status?id="+lastJob)).json();
+const s=await(await fetch("/api/status?id="+lastJob)).json();
 
-out.innerHTML=`Progress : ${s.progress||0}%`;
+ui(s.progress||0,s.stage||"Rendering",s.eta||0);
 
 if(s.done){
 
@@ -120,26 +196,20 @@ clearInterval(timer);
 
 lastVideo=s.videoUrl;
 
-status.innerHTML=`✅ 100%
-
-Complete`;
-
-out.innerHTML="Video Ready";
-
-document.getElementById("extendBtn").disabled=false;
 document.getElementById("downloadBtn").disabled=false;
+document.getElementById("extendBtn").disabled=false;
 document.getElementById("deleteBtn").disabled=false;
+
+ui(100,"Video Ready",0);
 
 }
 
-},3000);
+},2000);
 
 }
 
 function downloadVideo(){
-if(lastVideo){
-window.open(lastVideo,"_blank");
-}
+if(lastVideo) window.open(lastVideo,"_blank");
 }
 
 function newVideo(){
@@ -147,15 +217,14 @@ function newVideo(){
 lastVideo="";
 lastJob="";
 
-document.getElementById("prompt").value="";
-document.getElementById("img").value="";
+prompt.value="";
+img.value="";
 
-document.getElementById("status").innerHTML="";
-document.getElementById("out").innerHTML="";
-
-document.getElementById("extendBtn").disabled=true;
 document.getElementById("downloadBtn").disabled=true;
+document.getElementById("extendBtn").disabled=true;
 document.getElementById("deleteBtn").disabled=true;
+
+ui(0,"Waiting...",0);
 
 }
 
