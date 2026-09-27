@@ -28,6 +28,12 @@ const stage = (t,p,e)=>{
 };
 
 stage("Prompt Received",0,180);
+setTimeout(()=>stage("Analyzing Prompt",12,165),3000);
+setTimeout(()=>stage("Creating Storyboard",25,145),8000);
+setTimeout(()=>stage("Rendering Frames",55,90),20000);
+setTimeout(()=>stage("Animating Motion",72,45),90000);
+setTimeout(()=>stage("Final Touch",88,20),140000);
+setTimeout(()=>stage("Encoding MP4",96,8),165000);
 async function gen(){
   const out=document.getElementById("out");
   out.innerHTML="⏳ 0% | ETA: 180s";
