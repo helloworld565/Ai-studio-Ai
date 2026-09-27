@@ -19,18 +19,31 @@ button{background:#7c3aed;color:#fff;border:0}
 <div id="out"></div>
 
 <script>
-async function gen(){
- const key="YOUR_BACKEND";
- const p=document.getElementById("prompt").value;
- document.getElementById("out").innerText="Generating...";
- const r=await fetch("/api/video",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({prompt:p,image:document.getElementById("img").value})
- });
- const d=await r.json();
- document.getElementById("out").innerText=JSON.stringify(d,null,2);
+async function gen() {
+  const out = document.getElementById("out");
+  const prompt = document.getElementById("prompt").value;
+  const image = document.getElementById("img").value;
+
+  out.innerHTML = "⏳ 0% | ETA: 3:00";
+
+  const timer = setInterval(() => {
+    const t = out.innerText.match(/(\d+)%/);
+    let p = t ? parseInt(t[1]) : 0;
+    if (p < 95) {
+      p += 5;
+      out.innerHTML = `⏳ ${p}% | ETA: ${Math.max(0, Math.ceil((100-p)/5))} min`;
+    }
+  }, 8000);
+
+  const r = await fetch("/api/generate", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ prompt, image })
+  });
+
+  clearInterval(timer);
+  const d = await r.json();
+
+  out.innerHTML = "✅ 100% Complete\n\n" + JSON.stringify(d, null, 2);
 }
 </script>
-</body>
-</html>
