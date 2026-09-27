@@ -19,31 +19,31 @@ button{background:#7c3aed;color:#fff;border:0}
 <div id="out"></div>
 
 <script>
-async function gen() {
-  const out = document.getElementById("out");
-  const prompt = document.getElementById("prompt").value;
-  const image = document.getElementById("img").value;
+async function gen(){
+  const out=document.getElementById("out");
+  out.innerHTML="⏳ 0% | ETA: 180s";
 
-  out.innerHTML = "⏳ 0% | ETA: 3:00";
-
-  const timer = setInterval(() => {
-    const t = out.innerText.match(/(\d+)%/);
-    let p = t ? parseInt(t[1]) : 0;
-    if (p < 95) {
-      p += 5;
-      out.innerHTML = `⏳ ${p}% | ETA: ${Math.max(0, Math.ceil((100-p)/5))} min`;
-    }
-  }, 8000);
-
-  const r = await fetch("/api/generate", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ prompt, image })
+  const r=await fetch("/api/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      prompt:document.getElementById("prompt").value,
+      image:document.getElementById("img").value
+    })
   });
 
-  clearInterval(timer);
-  const d = await r.json();
+  const d=await r.json();
+  const id=d.name;
 
-  out.innerHTML = "✅ 100% Complete\n\n" + JSON.stringify(d, null, 2);
+  const timer=setInterval(async()=>{
+    const s=await (await fetch("/api/status?id="+id)).json();
+
+    out.innerHTML=`⏳ ${s.progress||0}% | ETA: ${s.eta||0}s`;
+
+    if(s.done){
+      clearInterval(timer);
+      out.innerHTML=`✅ 100%<br><a href="${s.videoUrl}">Download MP4</a>`;
+    }
+  },3000);
 }
 </script>
