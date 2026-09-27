@@ -78,9 +78,12 @@ async function pollStatus() {
       stage.innerText = "Ready";
       lastVideo = s.videoUrl;
 
-      downloadBtn.onclick = () => {
-        window.open(lastVideo, "_blank");
-      };
+downloadBtn.onclick = () => {
+  const a = document.createElement("a");
+  a.href = lastVideo;
+  a.download = "wan-video.mp4";
+  a.click();
+};
     }
 
   }, 2000);
