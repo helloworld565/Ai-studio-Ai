@@ -7,11 +7,11 @@ export default async function handler(req, res) {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: prompt
-        })
+          prompt: prompt,
+        }),
       }
     );
 
@@ -19,17 +19,16 @@ export default async function handler(req, res) {
 
     if (!r.ok) {
       return res.status(r.status).json({
-        error: data.error?.message || JSON.stringify(data)
+        error: data.error?.message || "API Error",
       });
     }
 
     return res.status(200).json({
-      name: data.name
+      name: data.name,
     });
-
   } catch (e) {
     return res.status(500).json({
-      error: String(e)
+      error: String(e),
     });
   }
 }
