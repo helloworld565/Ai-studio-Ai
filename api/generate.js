@@ -3,11 +3,12 @@ export default async function handler(req, res) {
     const { prompt } = req.body;
 
     const r = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview:predict?key=" +
-      process.env.GEMINI_API_KEY,
+      `https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview:predictLongRunning?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           instances: [{ prompt }]
         })
@@ -16,12 +17,17 @@ export default async function handler(req, res) {
 
     const data = await r.json();
 
-    if (!data.name) {
-      return res.status(500).json(data);
+    if (!r.ok) {
+      return res.status(r.status).json(data);
     }
 
-    res.status(200).json({ name: data.name });
+    return res.status(200).json({
+      name: data.name
+    });
+
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    return res.status(500).json({
+      error: e.message
+    });
   }
 }
