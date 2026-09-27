@@ -167,9 +167,14 @@ async function gen(){
       })
     });
 
-    const d = await r.json();
-    if(!d.name){ alert("API Error"); return; }
+    
+const txt = await r.text();
+const d = JSON.parse(txt);
 
+if (!d.name) {
+  alert("API Error");
+  return;
+}
     lastJob = d.name;
 
     const t = setInterval(async()=>{
