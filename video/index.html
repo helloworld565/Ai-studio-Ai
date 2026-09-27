@@ -152,86 +152,39 @@ Aspect
 </div>
 
 <script>
-let lastVideo="";
-let lastJob="";
+let lastVideo="", lastJob="";
 
-function ui(p,s,e){
-document.getElementById("stage").innerText=s;
-document.getElementById("percent").innerText=p+"%";
-document.getElementById("eta").innerText="ETA : "+e+" sec";
-document.getElementById("fill").style.width=p+"%";
-}
+async function gen(){
+  const r = await fetch("/api/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      prompt:document.getElementById("prompt").value,
+      image:document.getElementById("img").value,
+      resolution:document.getElementById("resolution").value,
+      fps:document.getElementById("fps").value,
+      duration:document.getElementById("duration").value,
+      aspect:document.getElementById("aspect").value
+    })
+  });
 
-async function gen(extend){
+  const d = await r.json();
+  lastJob = d.name;
 
-ui(0,"Submitting Prompt",180);
+  const timer = setInterval(async()=>{
+    const s = await (await fetch("/api/status?id="+lastJob)).json();
 
-const r=await fetch("/api/generate",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-prompt:prompt.value,
-image:img.value,
-extend,
-lastVideo,
-resolution:res.value,
-fps:fps.value,
-duration:dur.value,
-aspect:ratio.value
-})
-});
+    document.getElementById("percent").innerText = s.progress+"%";
+    document.getElementById("bar").value = s.progress;
+    document.getElementById("eta").innerText = s.eta+" sec";
 
-const d=await r.json();
-lastJob=d.name;
-
-const timer=setInterval(async()=>{
-
-const s=await(await fetch("/api/status?id="+lastJob)).json();
-
-ui(s.progress||0,s.stage||"Rendering",s.eta||0);
-
-if(s.done){
-
-clearInterval(timer);
-
-lastVideo=s.videoUrl;
-
-document.getElementById("downloadBtn").disabled=false;
-document.getElementById("extendBtn").disabled=false;
-document.getElementById("deleteBtn").disabled=false;
-
-ui(100,"Video Ready",0);
-
-}
-
-},2000);
-
-}
-
-function downloadVideo(){
-if(lastVideo) window.open(lastVideo,"_blank");
-}
-
-function newVideo(){
-
-lastVideo="";
-lastJob="";
-
-prompt.value="";
-img.value="";
-
-document.getElementById("downloadBtn").disabled=true;
-document.getElementById("extendBtn").disabled=true;
-document.getElementById("deleteBtn").disabled=true;
-
-ui(0,"Waiting...",0);
-
-}
-
-function deleteVideo(){
-newVideo();
+    if(s.done){
+      clearInterval(timer);
+      lastVideo = s.videoUrl;
+      document.getElementById("downloadBtn").href = lastVideo;
+    }
+  },2000);
 }
 </script>
 
-</body>
-</html>
+
