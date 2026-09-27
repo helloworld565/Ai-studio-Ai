@@ -146,6 +146,59 @@ placeholder="Describe your cinematic video..."></textarea>
 
   <p class="small">ETA: <span id="eta">0 sec</span></p>
 </div>
+<script>
+let lastJob="", lastVideo="";
 
+async function gen(){
+  try{
+    const r = await fetch("/api/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        prompt:prompt.value,
+        image:img.value,
+        resolution:resolution.value,
+        fps:fps.value,
+        duration:duration.value,
+        aspect:aspect.value
+      })
+    });
+
+    const d = await r.json();
+    if(!d.name){ alert("API Error"); return; }
+
+    lastJob = d.name;
+
+    const t = setInterval(async()=>{
+      const s = await (await fetch("/api/status?id="+lastJob)).json();
+
+      percent.innerText = (s.progress||0)+"%";
+      bar.value = s.progress||0;
+      eta.innerText = (s.eta||0)+" sec";
+
+      if(s.done){
+        clearInterval(t);
+        lastVideo = s.videoUrl;
+        downloadBtn.href = lastVideo;
+        status.innerText = "Ready";
+      }
+    },2000);
+
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+function newVideo(){
+  prompt.value="";
+  img.value="";
+  percent.innerText="0%";
+  bar.value=0;
+  eta.innerText="0 sec";
+  status.innerText="Ready";
+}
+
+function deleteVideo(){ newVideo(); }
+</script>
 </body>
 </html>
