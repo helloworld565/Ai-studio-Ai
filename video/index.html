@@ -1,31 +1,43 @@
-<!DOCTYPE html>
+
+
+    <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI Video</title>
+<title>Wan 2.1 AI Video</title>
 <style>
 body{background:#0b1020;color:#fff;font-family:Arial;padding:20px}
 textarea,input,button{width:100%;margin:10px 0;padding:12px;border-radius:10px}
-button{background:#7c3aed;color:#fff;border:0}
-#out{margin-top:15px;white-space:pre-wrap}
+button{background:#7c3aed;color:#fff;border:0;border-radius:10px}
+#status,#out{margin-top:15px;white-space:pre-wrap}
 </style>
 </head>
 <body>
+
 <h2>Wan 2.1 AI Video</h2>
+
 <input id="img" placeholder="Image URL (optional)">
 <textarea id="prompt" rows="4" placeholder="Describe your video..."></textarea>
-<button onclick="gen()">Generate</button>
-<div id="out"></div>
-<div id="status"
-style="margin-top:12px;white-space:pre-wrap;font-size:16px">
-</div>
-<script>
-const status = document.getElementById("status");
 
-const stage = (t,p,e)=>{
-  status.innerHTML = `⏳ ${p}%\n${t}\nETA: ${e}s`;
-};
+<button onclick="gen(false)">🎬 Generate</button>
+<button id="extendBtn" onclick="gen(true)" disabled>➕ Extend Video</button>
+<button id="downloadBtn" onclick="downloadVideo()" disabled>⬇️ Download MP4</button>
+<button onclick="newVideo()">🆕 New Video</button>
+<button id="deleteBtn" onclick="deleteVideo()" disabled>🗑️ Delete</button>
+
+<div id="status"></div>
+<div id="out"></div>
+
+<script>
+let lastVideo="", lastJob="";
+
+async function gen(extend){
+
+const out=document.getElementById("out");
+const status=document.getElementById("status");
+
+const stage=(t,p,e)=>status.innerHTML=`⏳ ${p}%\n${t}\nETA: ${e}s`;
 
 stage("Prompt Received",0,180);
 setTimeout(()=>stage("Analyzing Prompt",12,165),3000);
@@ -34,31 +46,56 @@ setTimeout(()=>stage("Rendering Frames",55,90),20000);
 setTimeout(()=>stage("Animating Motion",72,45),90000);
 setTimeout(()=>stage("Final Touch",88,20),140000);
 setTimeout(()=>stage("Encoding MP4",96,8),165000);
-async function gen(){
-  const out=document.getElementById("out");
-  out.innerHTML="⏳ 0% | ETA: 180s";
 
-  const r=await fetch("/api/generate",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      prompt:document.getElementById("prompt").value,
-      image:document.getElementById("img").value
-    })
-  });
+const r=await fetch("/api/generate",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+prompt:document.getElementById("prompt").value,
+image:document.getElementById("img").value,
+extend,
+lastVideo
+})
+});
 
-  const d=await r.json();
-  const id=d.name;
+const d=await r.json();
+lastJob=d.name;
 
-  const timer=setInterval(async()=>{
-    const s=await (await fetch("/api/status?id="+id)).json();
+const timer=setInterval(async()=>{
+const s=await (await fetch("/api/status?id="+lastJob)).json();
 
-    out.innerHTML=`⏳ ${s.progress||0}% | ETA: ${s.eta||0}s`;
+out.innerHTML=`Progress: ${s.progress||0}%`;
 
-    if(s.done){
-      clearInterval(timer);
-      out.innerHTML=`✅ 100%<br><a href="${s.videoUrl}">Download MP4</a>`;
-    }
-  },3000);
+if(s.done){
+clearInterval(timer);
+lastVideo=s.videoUrl;
+status.innerHTML="✅ 100%\nComplete";
+out.innerHTML=`Video Ready`;
+document.getElementById("extendBtn").disabled=false;
+document.getElementById("downloadBtn").disabled=false;
+document.getElementById("deleteBtn").disabled=false;
 }
+},3000);
+}
+
+function downloadVideo(){
+if(lastVideo) window.open(lastVideo,"_blank");
+}
+
+function newVideo(){
+lastVideo="";
+lastJob="";
+document.getElementById("prompt").value="";
+document.getElementById("img").value="";
+document.getElementById("status").innerHTML="";
+document.getElementById("out").innerHTML="";
+document.getElementById("extendBtn").disabled=true;
+document.getElementById("downloadBtn").disabled=true;
+document.getElementById("deleteBtn").disabled=true;
+}
+
+function deleteVideo(){ newVideo(); }
 </script>
+
+</body>
+</html>
