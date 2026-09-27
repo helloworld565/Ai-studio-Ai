@@ -17,7 +17,9 @@ button{background:#7c3aed;color:#fff;border:0}
 <textarea id="prompt" rows="4" placeholder="Describe your video..."></textarea>
 <button onclick="gen()">Generate</button>
 <div id="out"></div>
-
+<div id="status"
+style="margin-top:12px;white-space:pre-wrap;font-size:16px">
+</div>
 <script>
 async function gen(){
   const out=document.getElementById("out");
