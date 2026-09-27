@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+< lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -31,7 +31,7 @@ button{width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-
 footer{padding:30px;text-align:center;background:#0b1028}
 </style>
 </head>
-<body>
+<>
 
 <header>
 <div class="logo">AI STUDIO</div>
@@ -131,8 +131,20 @@ document.querySelectorAll("button,.btn").forEach(e=>e.onclick=clickSound);
 </section>
 
 <script>
-async function generate3D(){
-  alert("API connect hone ke baad yahi video banega");
+async function generate3D() {
+  const prompt = document.getElementById("prompt").value;
+  const style = document.getElementById("style").value;
+
+  if (!prompt) {
+    alert("पहले सीन लिखो");
+    return;
+  }
+
+  alert("Generating 3D Cartoon Video...");
+
+  const player = document.getElementById("player");
+  player.poster =
+    "https://placehold.co/720x1280?text=Generating+3D+Video";
 }
 </script>
 </body>
