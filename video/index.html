@@ -167,13 +167,14 @@ async function gen(){
       })
     });
 
-    
-const txt = await r.text();
+    const txt = await r.text();
 const d = JSON.parse(txt);
 
 if (!d.name) {
-  alert("API Error");
+  alert(d.error || "API Error");
   return;
+}
+
 }
     lastJob = d.name;
 
