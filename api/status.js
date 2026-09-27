@@ -1,22 +1,24 @@
 export default async function handler(req, res) {
-  const { id } = req.query;
+  const id = req.query.id;
 
-  const r = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/${id}?key=${process.env.GEMINI_API_KEY}`
-  );
+  if (!id) {
+    return res.status(400).json({ error: "Missing id" });
+  }
 
-  const op = await r.json();
+  try {
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1/operations/${id}?key=${process.env.GEMINI_API_KEY}`
+    );
 
-  const done = op.done === true;
-  const progress = done ? 100 : (op.metadata?.progressPercentage || 0);
+    const d = await r.json();
 
-  const videoUrl =
-    op.response?.generatedVideos?.[0]?.video?.uri || "";
-
-  res.json({
-    done,
-    progress,
-    eta: done ? 0 : Math.round((100 - progress) * 1.5),
-    videoUrl
-  });
+    return res.status(200).json({
+      done: d.done || false,
+      progress: d.metadata?.progressPercentage || 0,
+      eta: d.metadata?.estimatedSecondsRemaining || 0,
+      videoUrl: d.response?.generatedVideos?.[0]?.video?.uri || ""
+    });
+  } catch (e) {
+    return res.status(500).json({ error: String(e) });
+  }
 }
