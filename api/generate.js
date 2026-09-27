@@ -17,8 +17,11 @@ export default async function handler(req, res) {
 
     const data = await r.json();
 
-    if (!r.ok) {
-      return res.status(r.status).json(data);
+if (!data.name) {
+  return res.status(500).json({
+    error: data.error?.message || JSON.stringify(data)
+  });
+}
     }
 
     return res.status(200).json({
