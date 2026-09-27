@@ -21,6 +21,13 @@ button{background:#7c3aed;color:#fff;border:0}
 style="margin-top:12px;white-space:pre-wrap;font-size:16px">
 </div>
 <script>
+const status = document.getElementById("status");
+
+const stage = (t,p,e)=>{
+  status.innerHTML = `⏳ ${p}%\n${t}\nETA: ${e}s`;
+};
+
+stage("Prompt Received",0,180);
 async function gen(){
   const out=document.getElementById("out");
   out.innerHTML="⏳ 0% | ETA: 180s";
