@@ -11,20 +11,21 @@ const etaEl = document.getElementById("eta");
 const previewEl = document.getElementById("preview");
 
 async function startGen() {
-  const prompt = promptEl.value.trim();
+  const prompt = promptEl?.value?.trim();
   if (!prompt) {
     alert("Prompt लिखो");
     return;
   }
 
-  // reset
   if (pollTimer) clearInterval(pollTimer);
+
   stageEl.innerText = "Starting...";
   percentEl.innerText = "0%";
   barEl.value = 0;
   etaEl.innerText = "...";
   previewEl.innerText = "⏳";
   lastVideo = "";
+  lastJob = "";
 
   try {
     const res = await fetch("/api/generate", {
@@ -41,6 +42,7 @@ async function startGen() {
     if (!res.ok) {
       alert(data.error || "Generate failed");
       stageEl.innerText = "Error";
+      previewEl.innerText = "❌";
       return;
     }
 
@@ -51,6 +53,7 @@ async function startGen() {
   } catch (err) {
     alert(err.message);
     stageEl.innerText = "Error";
+    previewEl.innerText = "❌";
   }
 }
 
@@ -65,6 +68,8 @@ function pollStatus() {
       if (!res.ok) {
         clearInterval(pollTimer);
         alert(s.error || "Status error");
+        stageEl.innerText = "Error";
+        previewEl.innerText = "❌";
         return;
       }
 
@@ -90,7 +95,7 @@ function pollStatus() {
     } catch (e) {
       console.error(e);
     }
-  }, 5000); // 5 seconds
+  }, 5000);
 }
 
 function downloadVideo() {
@@ -99,29 +104,42 @@ function downloadVideo() {
     return;
   }
 
-  // Gemini video URI को API key के साथ download करना पड़ता है
-  // इसलिए हम एक proxy endpoint इस्तेमाल करेंगे
-  const a = document.createElement("a");
-  a.href = "/api/download?url=" + encodeURIComponent(lastVideo);
-  a.download = "veo-video.mp4";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  const downloadUrl = "/api/download?url=" + encodeURIComponent(lastVideo);
+
+  // Mobile + Desktop दोनों के लिए best method
+  try {
+    // 1. नई tab में खोलो (mobile पर सबसे reliable)
+    const newTab = window.open(downloadUrl, "_blank");
+
+    // 2. अगर popup block हो जाए तो direct click
+    if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = "veo-video.mp4";
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  } catch (e) {
+    // Last fallback
+    window.location.href = downloadUrl;
+  }
 }
 
 function resetUI() {
   if (pollTimer) clearInterval(pollTimer);
-  promptEl.value = "";
+
+  if (promptEl) promptEl.value = "";
   if (imageEl) imageEl.value = "";
+
   stageEl.innerText = "Ready";
   percentEl.innerText = "0%";
   barEl.value = 0;
   etaEl.innerText = "0 sec";
   previewEl.innerText = "🎥";
+
   lastJob = "";
   lastVideo = "";
 }
-        
-      
-
-  
