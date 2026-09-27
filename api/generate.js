@@ -28,8 +28,9 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({
-      name: data.name
-    });
+  videoUrl: data.video?.uri || data.videoUrl,
+  name: data.name
+});
 
   } catch (e) {
     return res.status(500).json({
