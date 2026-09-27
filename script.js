@@ -1,136 +1,127 @@
 let lastJob = "";
 let lastVideo = "";
+let pollTimer = null;
 
-const prompt = document.getElementById("prompt");
-const img = document.getElementById("img");
-const resolution = document.getElementById("resolution");
-const fps = document.getElementById("fps");
-const duration = document.getElementById("duration");
-const aspect = document.getElementById("aspect");
+const promptEl = document.getElementById("prompt");
+const imageEl = document.getElementById("image");
+const stageEl = document.getElementById("stage");
+const percentEl = document.getElementById("percent");
+const barEl = document.getElementById("bar");
+const etaEl = document.getElementById("eta");
+const previewEl = document.getElementById("preview");
 
-const stage = document.getElementById("stage");
-const percent = document.getElementById("percent");
-const bar = document.getElementById("bar");
-const eta = document.getElementById("eta");
-
-const downloadBtn = document.getElementById("downloadBtn");
-const newBtn = document.getElementById("newBtn");
-const deleteBtn = document.getElementById("deleteBtn");
-const extendBtn = document.getElementById("extendBtn");
-
-async function gen() {
-  if (!prompt.value.trim()) {
-    alert("Prompt likho");
+async function startGen() {
+  const prompt = promptEl.value.trim();
+  if (!prompt) {
+    alert("Prompt लिखो");
     return;
   }
 
-  stage.innerText = "Generating...";
-  percent.innerText = "0%";
-  bar.value = 0;
+  // reset
+  if (pollTimer) clearInterval(pollTimer);
+  stageEl.innerText = "Starting...";
+  percentEl.innerText = "0%";
+  barEl.value = 0;
+  etaEl.innerText = "...";
+  previewEl.innerText = "⏳";
+  lastVideo = "";
 
   try {
-    const r = await fetch("/api/generate", {
+    const res = await fetch("/api/generate", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: prompt.value,
-        image: img.value,
-        resolution: resolution.value,
-        fps: fps.value,
-        duration: duration.value,
-        aspect: aspect.value
+        prompt,
+        aspectRatio: "16:9"
       })
     });
 
-    const d = await r.json();
+    const data = await res.json();
 
-    if (!r.ok) {
-      alert(d.error || "Server Error");
+    if (!res.ok) {
+      alert(data.error || "Generate failed");
+      stageEl.innerText = "Error";
       return;
     }
 
-    lastJob = d.name;
+    lastJob = data.name;
+    stageEl.innerText = "Queued";
     pollStatus();
 
-  } catch (e) {
-    alert(e.message);
+  } catch (err) {
+    alert(err.message);
+    stageEl.innerText = "Error";
   }
 }
 
-async function pollStatus() {
+function pollStatus() {
+  if (pollTimer) clearInterval(pollTimer);
 
-  const timer = setInterval(async () => {
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await fetch("/api/status?id=" + encodeURIComponent(lastJob));
+      const s = await res.json();
 
-    const r = await fetch("/api/status?id=" + lastJob);
-    const s = await r.json();
+      if (!res.ok) {
+        clearInterval(pollTimer);
+        alert(s.error || "Status error");
+        return;
+      }
 
-    percent.innerText = (s.progress || 0) + "%";
-    bar.value = s.progress || 0;
-    eta.innerText = (s.eta || 0) + " sec";
+      percentEl.innerText = (s.progress || 0) + "%";
+      barEl.value = s.progress || 0;
+      etaEl.innerText = (s.eta || 0) + " sec";
+      stageEl.innerText = s.state || "Generating...";
 
-    if (s.state) stage.innerText = s.state;
+      if (s.done) {
+        clearInterval(pollTimer);
+        stageEl.innerText = "Complete";
+        percentEl.innerText = "100%";
+        barEl.value = 100;
+        etaEl.innerText = "0 sec";
+        previewEl.innerText = "✅";
 
-    if (s.done) {
-      clearInterval(timer);
+        lastVideo = s.videoUrl || "";
 
-      stage.innerText = "Ready";
-      lastVideo = s.videoUrl;
-
-downloadBtn.onclick = () => {
-  const a = document.createElement("a");
-  a.href = lastVideo;
-  a.download = "wan-video.mp4";
-  a.click();
-};
+        if (!lastVideo) {
+          alert("Video URL नहीं मिला। API response चेक करें।");
+        }
+      }
+    } catch (e) {
+      console.error(e);
     }
-
-  }, 2000);
-
+  }, 5000); // 5 seconds
 }
 
-async function extendVideo() {
-
-  if (!lastJob) {
-    alert("Pehle video generate karo");
+function downloadVideo() {
+  if (!lastVideo) {
+    alert("पहले video generate करो");
     return;
   }
 
-  const r = await fetch("/api/extend", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      name: lastJob
-    })
-  });
-
-  const d = await r.json();
-
-  if (!r.ok) {
-    alert(d.error);
-    return;
-  }
-
-  lastJob = d.name;
-  stage.innerText = "Extending...";
-  pollStatus();
-
+  // Gemini video URI को API key के साथ download करना पड़ता है
+  // इसलिए हम एक proxy endpoint इस्तेमाल करेंगे
+  const a = document.createElement("a");
+  a.href = "/api/download?url=" + encodeURIComponent(lastVideo);
+  a.download = "veo-video.mp4";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
-function newVideo() {
-  prompt.value = "";
-  img.value = "";
-  stage.innerText = "Ready";
-  percent.innerText = "0%";
-  bar.value = 0;
-  eta.innerText = "0 sec";
+function resetUI() {
+  if (pollTimer) clearInterval(pollTimer);
+  promptEl.value = "";
+  if (imageEl) imageEl.value = "";
+  stageEl.innerText = "Ready";
+  percentEl.innerText = "0%";
+  barEl.value = 0;
+  etaEl.innerText = "0 sec";
+  previewEl.innerText = "🎥";
   lastJob = "";
   lastVideo = "";
 }
+        
+      
 
-function deleteVideo() {
-  newVideo();
-}
+  
