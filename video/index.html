@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wan 2.1 AI Studio</title>
 <style>
-body{font-family:Arial;background:#07142b;color:#fff;padding:16px}
-.card{background:#10224b;border-radius:16px;padding:16px;margin-bottom:16px}
-textarea,input,select{width:100%;padding:12px;margin-top:8px;background:#1a2d63;color:#fff;border:none;border-radius:10px}
+body{margin:0;background:#07142b;color:#fff;font-family:Arial;padding:16px}
+.card{background:#10224b;border-radius:16px;padding:14px;margin-bottom:14px}
+textarea,input,select{width:100%;padding:12px;background:#1a2d63;color:#fff;border:none;border-radius:10px;margin-top:8px}
 textarea{height:120px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:12px;color:#fff;font-weight:bold}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;color:#fff;font-weight:bold;margin-top:10px}
 .purple{background:#6c4cff}.green{background:#00c853}.orange{background:#ff9800}.red{background:#e53935}
 progress{width:100%;height:10px}
 </style>
@@ -20,7 +20,7 @@ progress{width:100%;height:10px}
 <h1>🎬 Wan 2.1 AI Studio</h1>
 
 <div class="card">
-<h2>Prompt</h2>
+<h3>Prompt</h3>
 <textarea id="prompt" placeholder="Describe your cinematic video..."></textarea>
 <input id="img" placeholder="Image URL (optional)">
 </div>
@@ -40,6 +40,8 @@ progress{width:100%;height:10px}
 <button class="btn green" id="downloadBtn">⬇ Download</button>
 <button class="btn orange" onclick="newVideo()">🆕 New</button>
 </div>
+
+<button class="btn red" onclick="newVideo()">🗑 Delete</button>
 
 <div class="card">
 <h2 id="stage">Ready</h2>
@@ -64,64 +66,63 @@ const downloadBtn=document.getElementById("downloadBtn");
 let lastJob="",lastVideo="";
 
 async function gen(){
- try{
   stage.innerText="Generating...";
+  try{
+    const r=await fetch("/api/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        prompt:prompt.value,
+        image:img.value,
+        resolution:resolution.value,
+        fps:fps.value,
+        duration:duration.value,
+        aspect:aspect.value
+      })
+    });
 
-  const r=await fetch("/api/generate",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({
-    prompt:prompt.value,
-    image:img.value,
-    resolution:resolution.value,
-    fps:fps.value,
-    duration:duration.value,
-    aspect:aspect.value
-   })
-  });
+    const d=await r.json();
 
-  const d=await r.json();
-
-  if(!r.ok){
-    alert(d.error||"API Error");
-    stage.innerText="Ready";
-    return;
-  }
-
-  lastJob=d.name;
-
-  const timer=setInterval(async()=>{
-    const s=await (await fetch("/api/status?id="+lastJob)).json();
-
-    percent.innerText=(s.progress||0)+"%";
-    bar.value=s.progress||0;
-    eta.innerText=(s.eta||0)+" sec";
-
-    if(s.done){
-      clearInterval(timer);
+    if(!r.ok){
+      alert(d.error||"API Error");
       stage.innerText="Ready";
-      lastVideo=s.videoUrl;
-
-      downloadBtn.onclick=()=>{
-        if(lastVideo) window.open(lastVideo,"_blank");
-      };
+      return;
     }
-  },2000);
 
- }catch(e){
-   alert(e.message);
-   stage.innerText="Ready";
- }
+    lastJob=d.name;
+
+    const timer=setInterval(async()=>{
+      const s=await (await fetch("/api/status?id="+lastJob)).json();
+
+      percent.innerText=(s.progress||0)+"%";
+      bar.value=s.progress||0;
+      eta.innerText=(s.eta||0)+" sec";
+
+      if(s.done){
+        clearInterval(timer);
+        stage.innerText="Ready";
+        lastVideo=s.videoUrl;
+
+        downloadBtn.onclick=()=>{
+          if(lastVideo) window.open(lastVideo,"_blank");
+        };
+      }
+    },2000);
+
+  }catch(e){
+    alert(String(e));
+    stage.innerText="Ready";
+  }
 }
 
 function newVideo(){
- prompt.value="";
- img.value="";
- stage.innerText="Ready";
- percent.innerText="0%";
- bar.value=0;
- eta.innerText="0 sec";
- lastVideo="";
+  prompt.value="";
+  img.value="";
+  percent.innerText="0%";
+  bar.value=0;
+  eta.innerText="0 sec";
+  stage.innerText="Ready";
+  lastVideo="";
 }
 </script>
 
