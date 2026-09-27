@@ -1,79 +1,151 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wan 2.1 AI Video</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wan 2.1 AI Studio</title>
+
 <style>
-body{background:#0b1020;color:#fff;font-family:Arial;padding:20px}
-h2{color:#7c3aed}
-input,textarea,button{width:100%;margin:10px 0;padding:12px;border-radius:10px;border:0}
-textarea{height:120px}
-button{background:#7c3aed;color:#fff;font-weight:bold}
-#status,#out{margin-top:15px;white-space:pre-wrap}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Arial,sans-serif;
+  background:#07142b;
+  color:#fff;
+  padding:16px;
+}
+.card{
+  background:#10224b;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px;
+}
+h1{font-size:34px;margin:8px 0 18px}
+h2{font-size:22px;margin-bottom:12px}
+label{display:block;margin:10px 0 6px;font-weight:bold}
+textarea,input,select{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#1a2d63;
+  color:#fff;
+}
+textarea{height:120px;resize:none}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.btn{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:14px;
+  color:#fff;
+  font-size:18px;
+  font-weight:bold;
+  margin-top:10px;
+}
+.purple{background:linear-gradient(90deg,#5b6cff,#b52cff)}
+.green{background:#00c853}
+.orange{background:#ff9800}
+.red{background:#e53935}
+.progress{
+  width:100%;
+  height:10px;
+  border-radius:20px;
+}
+.small{font-size:14px;color:#b8c4ff}
 </style>
 </head>
+
 <body>
 
-<h2>🎬 Wan 2.1 AI Video</h2>
+<h1>🎬 Wan 2.1 AI Studio</h1>
 
-<input id="img" placeholder="Image URL (optional)">
-<textarea id="prompt" placeholder="Describe your cinematic video..."></textarea>
+<div class="card">
+  <h2>Prompt</h2>
 
-<button onclick="gen()">Generate Video</button>
-<button onclick="newVideo()">New Video</button>
+  <label>Describe Video</label>
+  <textarea id="prompt"
+placeholder="Describe your cinematic video..."></textarea>
 
-<div id="status"></div>
-<div id="out"></div>
+  <label>Reference Image</label>
+  <input id="img" placeholder="Image URL (optional)">
+</div>
 
-<script>
-let lastVideo="", lastJob="";
+<div class="card">
+  <h2>Advanced Settings</h2>
 
-async function gen(){
- const status=document.getElementById("status");
- const out=document.getElementById("out");
+  <div class="grid">
+    <div>
+      <label>Resolution</label>
+      <select id="resolution">
+        <option>1080P</option>
+        <option>4K</option>
+      </select>
+    </div>
 
- status.innerHTML="⏳ Starting...";
- out.innerHTML="";
+    <div>
+      <label>FPS</label>
+      <select id="fps">
+        <option>24</option>
+        <option>30</option>
+        <option>60</option>
+      </select>
+    </div>
 
- const r=await fetch("/api/generate",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({
-     prompt:document.getElementById("prompt").value,
-     image:document.getElementById("img").value
-   })
- });
+    <div>
+      <label>Duration</label>
+      <select id="duration">
+        <option>8</option>
+        <option>12</option>
+        <option>16</option>
+      </select>
+    </div>
 
- const d=await r.json();
- lastJob=d.name;
+    <div>
+      <label>Aspect</label>
+      <select id="aspect">
+        <option>9:16</option>
+        <option>16:9</option>
+        <option>1:1</option>
+      </select>
+    </div>
+  </div>
+</div>
 
- const timer=setInterval(async()=>{
-   const s=await (await fetch("/api/status?id="+lastJob)).json();
+<div class="card">
+  <h2>🎤 Voice Clone</h2>
 
-   status.innerHTML=
-   `🎬 ${s.stage}
-${s.progress}% | ETA ${s.eta}s`;
+  <input type="file" accept=".wav,.mp3">
+  <p class="small">WAV / MP3 (optional)</p>
+</div>
 
-   if(s.done){
-     clearInterval(timer);
-     lastVideo=s.videoUrl;
-     out.innerHTML=
-     `<a href="${lastVideo}" target="_blank" style="color:#7dd3fc">⬇ Download MP4</a>`;
-   }
- },2000);
-}
+<button class="btn purple" id="generateBtn">
+🎬 Generate Video
+</button>
 
-function newVideo(){
- lastVideo="";
- lastJob="";
- document.getElementById("prompt").value="";
- document.getElementById("img").value="";
- document.getElementById("status").innerHTML="";
- document.getElementById("out").innerHTML="";
-}
-</script>
+<button class="btn purple" id="extendBtn">
+➕ Extend Video
+</button>
+
+<div class="grid">
+  <button class="btn green" id="downloadBtn">⬇ Download</button>
+  <button class="btn orange" id="newBtn">🆕 New</button>
+</div>
+
+<button class="btn red" id="deleteBtn">🗑 Delete</button>
+
+<div class="card">
+  <h2 id="stage">Ready</h2>
+
+  <h1 id="percent">0%</h1>
+
+  <progress id="bar" class="progress" value="0" max="100"></progress>
+
+  <p class="small">ETA: <span id="eta">0 sec</span></p>
+</div>
 
 </body>
 </html>
